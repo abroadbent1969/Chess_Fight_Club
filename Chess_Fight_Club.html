@@ -16,6 +16,7 @@
         canvas {
             border: 2px solid #555;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            position: relative; /* Ensure canvas is a positioning context */
         }
         #controls {
             margin: 20px 0;
@@ -55,11 +56,71 @@
         select:hover {
             background-color: #8cbb6c;
         }
+        #checkmateOverlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Center the overlay */
+            width: 500px;
+            height: 300px;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 10;
+            text-align: center;
+        }
+        #checkmateOverlay p {
+            font-size: 60px;
+            font-weight: bold;
+            color: #FFD700; /* Gold color for CHECKMATE! text */
+            margin: 0;
+        }
+        #checkmateOverlay span {
+            font-size: 24px;
+            color: white;
+            margin-top: 20px;
+        }
+        #stalemateOverlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Center the overlay */
+            width: 800px;
+            height: 800px;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 10;
+            text-align: center;
+        }
+        #stalemateOverlay p {
+            font-size: 60px;
+            font-weight: bold;
+            color: #FFD700; /* Gold color for STALEMATE! text */
+            margin: 0;
+        }
+        #stalemateOverlay span {
+            font-size: 24px;
+            color: white;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
     <div id="gameStatus">Load a setup and click "Start AI Game"</div>
-    <canvas id="chessCanvas" width="800" height="800"></canvas> 
+    <canvas id="chessCanvas" width="800" height="800"></canvas>
+    <div id="checkmateOverlay">
+        <p>CHECKMATE!</p>
+        <span id="checkmateText"></span>
+    </div>
+    <div id="stalemateOverlay">
+        <p>STALEMATE!</p>
+        <span id="stalemateText">Game ended in a draw.</span>
+    </div>
     <div id="controls">
         <button onclick="startGame()">Start AI Game</button>
         <select id="speedSelect" onchange="updateSpeed()">
@@ -74,7 +135,7 @@
         <button onclick="setCustomBoard('BishopsRooksKnightsAndQueens')">No Pawns Setup</button>
         <button onclick="stopGame()">Stop Game</button>
     </div>
-    
+
     <script>
         const canvas = document.getElementById('chessCanvas');
         const ctx = canvas.getContext('2d');
@@ -117,6 +178,7 @@
         let board = Array(8).fill().map(() => Array(8).fill(''));
         let currentPlayer = 'w';
         let gameActive = false;
+        let moveCount = 0; // Track full moves (increment after Black's turn)
         let whiteKingPos = { r: 7, c: 4 };
         let blackKingPos = { r: 0, c: 4 };
         let castlingRights = {
@@ -236,6 +298,7 @@
                 ['wr', 'wn', 'wb', 'wq', 'wk', 'wb', 'wn', 'wr']
             ];
             currentPlayer = 'w';
+            moveCount = 0; // Reset move count
             whiteKingPos = { r: 7, c: 4 };
             blackKingPos = { r: 0, c: 4 };
             castlingRights = { w_k: true, w_q: true, b_k: true, b_q: true, lastCastlingRights: null };
@@ -243,11 +306,14 @@
             lastMove = null;
             pendingMove = null;
             drawBoard();
+            document.getElementById('checkmateOverlay').style.display = 'none';
+            document.getElementById('stalemateOverlay').style.display = 'none';
             statusDiv.textContent = `Game Ready. White to Move.`;
         }
 
         function setCustomBoard(type) {
             gameActive = false;
+            moveCount = 0; // Reset move count
             if (type === 'allPawns') {
                 board = [
                     ['bp', 'bp', 'bp', 'bp', 'bk', 'bp', 'bp', 'bp'],
@@ -313,6 +379,8 @@
             lastMove = null;
             pendingMove = null;
             drawBoard();
+            document.getElementById('checkmateOverlay').style.display = 'none';
+            document.getElementById('stalemateOverlay').style.display = 'none';
             statusDiv.textContent = `Custom Setup Loaded. White to Move.`;
         }
 
@@ -390,6 +458,12 @@
 
             updateKingPos(piece, toRow, toCol);
             currentPlayer = currentPlayer === 'w' ? 'b' : 'w';
+
+            // Increment move count after Black's move (full move completed)
+            if (color === 'b') {
+                moveCount++;
+            }
+
             return captured;
         }
 
@@ -708,11 +782,20 @@
             if (moves.length === 0) {
                 gameActive = false;
                 const winner = player === 'w' ? 'Black' : 'White';
-                const loser = player === 'w' ? 'White' : 'Black';
                 if (isCheckmate(player)) {
                     statusDiv.textContent = `🚨 Game Over: Checkmate! ${winner} Wins.`;
+                    // Show checkmate overlay
+                    const overlay = document.getElementById('checkmateOverlay');
+                    const checkmateText = document.getElementById('checkmateText');
+                    checkmateText.textContent = `${winner} WINS`;
+                    overlay.style.display = 'flex';
+                    document.getElementById('stalemateOverlay').style.display = 'none';
                 } else {
                     statusDiv.textContent = `🤝 Game Over: Stalemate (Draw).`;
+                    // Show stalemate overlay
+                    const stalemateOverlay = document.getElementById('stalemateOverlay');
+                    stalemateOverlay.style.display = 'flex';
+                    document.getElementById('checkmateOverlay').style.display = 'none';
                 }
                 return;
             }
@@ -768,6 +851,8 @@
                     if (positionHistory.get(newBoardHash) >= 3) {
                         gameActive = false;
                         statusDiv.textContent = `🤝 Game Over: Draw by threefold repetition!`;
+                        document.getElementById('checkmateOverlay').style.display = 'none';
+                        document.getElementById('stalemateOverlay').style.display = 'none';
                         return;
                     }
 
@@ -784,9 +869,16 @@
 
                     if (isCheckmate(currentPlayer)) {
                         gameActive = false;
-                        statusDiv.textContent = `🚨 Game Over: Checkmate! ${player === 'w' ? 'White' : 'Black'} Wins.`;
+                        const winner = player === 'w' ? 'White' : 'Black';
+                        statusDiv.textContent = `🚨 Game Over: Checkmate! ${winner} Wins.`;
+                        // Show checkmate overlay
+                        const overlay = document.getElementById('checkmateOverlay');
+                        const checkmateText = document.getElementById('checkmateText');
+                        checkmateText.textContent = `${winner} WINS`;
+                        overlay.style.display = 'flex';
+                        document.getElementById('stalemateOverlay').style.display = 'none';
                     }
-                }, 1000 / speedMultiplier); // Adjusted delay based on speed multiplier
+                }, 1000 / speedMultiplier);
             }
         }
 
@@ -798,6 +890,7 @@
             }
             console.log("Starting AI game...");
             gameActive = true;
+            moveCount = 0; // Ensure move count is reset at game start
             positionHistory.clear();
             lastMove = null;
             pendingMove = null;
@@ -815,12 +908,14 @@
                     const endTime = performance.now();
                     console.log(`${playerColor} move time: ${Math.round(endTime - startTime)}ms. Score: ${evaluateBoard()}`);
                     if (gameActive) {
-                        setTimeout(playMove, 1000 / speedMultiplier); // Adjusted delay for recursive calls
+                        setTimeout(playMove, 1000 / speedMultiplier);
                     }
                 } catch (error) {
                     console.error("Error in AI move:", error);
                     gameActive = false;
                     statusDiv.textContent = "Game stopped due to an error. Check console for details.";
+                    document.getElementById('checkmateOverlay').style.display = 'none';
+                    document.getElementById('stalemateOverlay').style.display = 'none';
                 }
             }
             setTimeout(playMove, 10);
@@ -830,6 +925,8 @@
             gameActive = false;
             pendingMove = null;
             drawBoard();
+            document.getElementById('checkmateOverlay').style.display = 'none';
+            document.getElementById('stalemateOverlay').style.display = 'none';
             statusDiv.textContent = "Game Stopped by User.";
             console.log("Game stopped by user.");
         }
