@@ -42,6 +42,19 @@
             margin-top: 10px;
             font-weight: bold;
         }
+        select {
+            padding: 8px;
+            margin-right: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #769656;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        select:hover {
+            background-color: #8cbb6c;
+        }
     </style>
 </head>
 <body>
@@ -49,11 +62,16 @@
     <canvas id="chessCanvas" width="800" height="800"></canvas> 
     <div id="controls">
         <button onclick="startGame()">Start AI Game</button>
+        <select id="speedSelect" onchange="updateSpeed()">
+            <option value="1">1x</option>
+            <option value="2">2x</option>
+            <option value="5">5x</option>
+        </select>
         <button onclick="setCustomBoard('standard')">Standard Setup</button>
         <button onclick="setCustomBoard('allPawns')">All Pawns Setup</button>
         <button onclick="setCustomBoard('BishopsAndKnights')">Bishops Vs Knights Setup</button>
-		<button onclick="setCustomBoard('RooksAndQueens')">Rooks Vs Queens Setup</button>
-		<button onclick="setCustomBoard('BishopsRooksKnightsAndQueens')">No Pawns Setup</button>
+        <button onclick="setCustomBoard('RooksAndQueens')">Rooks Vs Queens Setup</button>
+        <button onclick="setCustomBoard('BishopsRooksKnightsAndQueens')">No Pawns Setup</button>
         <button onclick="stopGame()">Stop Game</button>
     </div>
     
@@ -61,9 +79,11 @@
         const canvas = document.getElementById('chessCanvas');
         const ctx = canvas.getContext('2d');
         const statusDiv = document.getElementById('gameStatus');
+        const speedSelect = document.getElementById('speedSelect');
         const squareSize = 100;
         const boardSize = 8;
         const AI_DEPTH = 3;
+        let speedMultiplier = 1; // Default speed multiplier
 
         // --- Visuals: Images Setup ---
         const pieceImageMap = {};
@@ -197,6 +217,12 @@
             }
         }
 
+        // --- Speed Control ---
+        function updateSpeed() {
+            speedMultiplier = parseInt(speedSelect.value);
+            console.log(`Speed set to ${speedMultiplier}x`);
+        }
+
         // --- Setup Functions ---
         function initStandardBoard() {
             board = [
@@ -250,7 +276,7 @@
                 whiteKingPos = { r: 7, c: 4 };
                 blackKingPos = { r: 0, c: 4 };
                 castlingRights = { w_k: false, w_q: false, b_k: false, b_q: false, lastCastlingRights: null };
-			} else if (type === 'RooksAndQueens') {
+            } else if (type === 'RooksAndQueens') {
                 board = [
                     ['bq', 'bq', 'bq', 'bq', 'bk', 'bq', 'bq', 'bq'],
                     ['bq', 'bq', 'bq', 'bq', 'bq', 'bq', 'bq', 'bq'],
@@ -264,7 +290,7 @@
                 whiteKingPos = { r: 7, c: 4 };
                 blackKingPos = { r: 0, c: 4 };
                 castlingRights = { w_k: false, w_q: false, b_k: false, b_q: false, lastCastlingRights: null };
-			} else if (type === 'BishopsRooksKnightsAndQueens') {
+            } else if (type === 'BishopsRooksKnightsAndQueens') {
                 board = [
                     ['br', 'br', 'bq', 'bq', 'bk', 'bq', 'br', 'br'],
                     ['bb', 'bb', 'bb', 'bb', 'bb', 'bb', 'bb', 'bb'],
@@ -301,71 +327,71 @@
             }
         }
 
-		function makeMove(fromRow, fromCol, toRow, toCol, isCastling = false) {
-			const piece = board[fromRow][fromCol];
-			const color = piece[0];
-			const kingPiece = color + 'k';
-			const rookPiece = color + 'r';
-			let captured = board[toRow][toCol];
+        function makeMove(fromRow, fromCol, toRow, toCol, isCastling = false) {
+            const piece = board[fromRow][fromCol];
+            const color = piece[0];
+            const kingPiece = color + 'k';
+            const rookPiece = color + 'r';
+            let captured = board[toRow][toCol];
 
-			castlingRights.lastCastlingRights = { ...castlingRights };
+            castlingRights.lastCastlingRights = { ...castlingRights };
 
-			// Handle pawn promotion
-			if (piece[1] === 'p') {
-				if ((color === 'w' && toRow === 0) || (color === 'b' && toRow === 7)) {
-					board[toRow][toCol] = color + 'q'; // Promote to queen
-				} else {
-					board[toRow][toCol] = piece;
-				}
-			} else {
-				board[toRow][toCol] = piece;
-			}
-			board[fromRow][fromCol] = '';
+            // Handle pawn promotion
+            if (piece[1] === 'p') {
+                if ((color === 'w' && toRow === 0) || (color === 'b' && toRow === 7)) {
+                    board[toRow][toCol] = color + 'q'; // Promote to queen
+                } else {
+                    board[toRow][toCol] = piece;
+                }
+            } else {
+                board[toRow][toCol] = piece;
+            }
+            board[fromRow][fromCol] = '';
 
-			if (isCastling) {
-				let rookFromCol, rookToCol;
-				if (toCol === 6) {
-					rookFromCol = 7;
-					rookToCol = 5;
-				} else if (toCol === 2) {
-					rookFromCol = 0;
-					rookToCol = 3;
-				}
-				board[toRow][rookToCol] = board[toRow][rookFromCol];
-				board[toRow][rookFromCol] = '';
-			}
+            if (isCastling) {
+                let rookFromCol, rookToCol;
+                if (toCol === 6) {
+                    rookFromCol = 7;
+                    rookToCol = 5;
+                } else if (toCol === 2) {
+                    rookFromCol = 0;
+                    rookToCol = 3;
+                }
+                board[toRow][rookToCol] = board[toRow][rookFromCol];
+                board[toRow][rookFromCol] = '';
+            }
 
-			if (piece === kingPiece) {
-				if (color === 'w') {
-					castlingRights.w_k = false;
-					castlingRights.w_q = false;
-				} else {
-					castlingRights.b_k = false;
-					castlingRights.b_q = false;
-				}
-			} else if (piece === rookPiece) {
-				if (color === 'w') {
-					if (fromRow === 7 && fromCol === 7) castlingRights.w_k = false;
-					if (fromRow === 7 && fromCol === 0) castlingRights.w_q = false;
-				} else {
-					if (fromRow === 0 && fromCol === 7) castlingRights.b_k = false;
-					if (fromRow === 0 && fromCol === 0) castlingRights.b_q = false;
-				}
-			}
-			if (captured === rookPiece) {
-				if (color === 'w') {
-					if (toRow === 0 && toCol === 7) castlingRights.b_k = false;
-					if (toRow === 0 && toCol === 0) castlingRights.b_q = false;
-				} else {
-					if (toRow === 7 && toCol === 7) castlingRights.w_k = false;
-					if (toRow === 7 && toCol === 0) castlingRights.w_q = false;
-				}
-			}
+            if (piece === kingPiece) {
+                if (color === 'w') {
+                    castlingRights.w_k = false;
+                    castlingRights.w_q = false;
+                } else {
+                    castlingRights.b_k = false;
+                    castlingRights.b_q = false;
+                }
+            } else if (piece === rookPiece) {
+                if (color === 'w') {
+                    if (fromRow === 7 && fromCol === 7) castlingRights.w_k = false;
+                    if (fromRow === 7 && fromCol === 0) castlingRights.w_q = false;
+                } else {
+                    if (fromRow === 0 && fromCol === 7) castlingRights.b_k = false;
+                    if (fromRow === 0 && fromCol === 0) castlingRights.b_q = false;
+                }
+            }
+            if (captured === rookPiece) {
+                if (color === 'w') {
+                    if (toRow === 0 && toCol === 7) castlingRights.b_k = false;
+                    if (toRow === 0 && toCol === 0) castlingRights.b_q = false;
+                } else {
+                    if (toRow === 7 && toCol === 7) castlingRights.w_k = false;
+                    if (toRow === 7 && toCol === 0) castlingRights.w_q = false;
+                }
+            }
 
-			updateKingPos(piece, toRow, toCol);
-			currentPlayer = currentPlayer === 'w' ? 'b' : 'w';
-			return captured; // Return the captured piece (if any, before promotion)
-		}
+            updateKingPos(piece, toRow, toCol);
+            currentPlayer = currentPlayer === 'w' ? 'b' : 'w';
+            return captured;
+        }
 
         function undoMove(fromRow, fromCol, toRow, toCol, captured, originalPiece, isCastling = false) {
             const color = originalPiece[0];
@@ -760,7 +786,7 @@
                         gameActive = false;
                         statusDiv.textContent = `🚨 Game Over: Checkmate! ${player === 'w' ? 'White' : 'Black'} Wins.`;
                     }
-                }, 500);
+                }, 1000 / speedMultiplier); // Adjusted delay based on speed multiplier
             }
         }
 
@@ -789,7 +815,7 @@
                     const endTime = performance.now();
                     console.log(`${playerColor} move time: ${Math.round(endTime - startTime)}ms. Score: ${evaluateBoard()}`);
                     if (gameActive) {
-                        setTimeout(playMove, 1000);
+                        setTimeout(playMove, 1000 / speedMultiplier); // Adjusted delay for recursive calls
                     }
                 } catch (error) {
                     console.error("Error in AI move:", error);
