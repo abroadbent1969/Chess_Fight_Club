@@ -162,6 +162,9 @@
         <button onclick="setCustomBoard('allPawns')">All Pawns Setup</button>
         <button onclick="setCustomBoard('BishopsAndKnights')">Bishops Vs Knights Setup</button>
         <button onclick="setCustomBoard('RooksAndQueens')">Rooks Vs Queens Setup</button>
+		<button onclick="setCustomBoard('PawnsAndQueens')">Pawns Vs Queens Setup</button>
+		<button onclick="setCustomBoard('PawnsAndQueens2')">Pawns Vs Queens2 Setup</button>
+		<button onclick="setCustomBoard('PawnsAndQueens3')">Pawns Vs Queens3 Setup</button>
         <button onclick="setCustomBoard('BishopsRooksKnightsAndQueens')">No Pawns Setup</button>
         <button onclick="stopGame()">Stop Game</button>
     </div>
@@ -391,6 +394,48 @@
                     ['wr', 'wr', 'wr', 'wr', 'wr', 'wr', 'wr', 'wr'],
                     ['wr', 'wr', 'wr', 'wr', 'wr', 'wr', 'wr', 'wr'],
                     ['wr', 'wr', 'wr', 'wr', 'wk', 'wr', 'wr', 'wr']
+                ];
+                whiteKingPos = { r: 7, c: 4 };
+                blackKingPos = { r: 0, c: 4 };
+                castlingRights = { w_k: false, w_q: false, b_k: false, b_q: false, lastCastlingRights: null };
+			} else if (type === 'PawnsAndQueens') {
+                board = [
+                    ['bq', 'bq', 'bq', 'bq', 'bk', 'bq', 'bq', 'bq'],
+                    ['bq', 'bq', 'bq', 'bq', 'bq', 'bq', 'bq', 'bq'],
+                    ['bq', 'bq', 'bq', 'bq', 'bq', 'bq', 'bq', 'bq'],
+                    ['', '', '', '', '', '', '', ''],
+                    ['', '', '', '', '', '', '', ''],
+                    ['wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp'],
+                    ['wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp'],
+                    ['wp', 'wp', 'wp', 'wp', 'wk', 'wp', 'wp', 'wp']
+                ];
+                whiteKingPos = { r: 7, c: 4 };
+                blackKingPos = { r: 0, c: 4 };
+                castlingRights = { w_k: false, w_q: false, b_k: false, b_q: false, lastCastlingRights: null };
+			} else if (type === 'PawnsAndQueens2') {
+                board = [
+                    ['bq', 'bq', 'bq', 'bq', 'bk', 'bq', 'bq', 'bq'],
+                    ['bq', 'bq', 'bq', 'bq', 'bq', 'bq', 'bq', 'bq'],
+                    ['', '', '', '', '', '', '', ''],
+                    ['', '', '', '', '', '', '', ''],
+                    ['wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp'],
+                    ['wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp'],
+                    ['wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp'],
+                    ['wp', 'wp', 'wp', 'wp', 'wk', 'wp', 'wp', 'wp']
+                ];
+                whiteKingPos = { r: 7, c: 4 };
+                blackKingPos = { r: 0, c: 4 };
+                castlingRights = { w_k: false, w_q: false, b_k: false, b_q: false, lastCastlingRights: null };
+			} else if (type === 'PawnsAndQueens3') {
+                board = [
+                    ['bq', 'bq', 'bq', 'bq', 'bk', 'bq', 'bq', 'bq'],
+                    ['', '', '', '', '', '', '', ''],
+                    ['', '', '', '', '', '', '', ''],
+                    ['wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp'],
+                    ['wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp'],
+                    ['wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp'],
+                    ['wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp'],
+                    ['wp', 'wp', 'wp', 'wp', 'wk', 'wp', 'wp', 'wp']
                 ];
                 whiteKingPos = { r: 7, c: 4 };
                 blackKingPos = { r: 0, c: 4 };
