@@ -56,70 +56,100 @@
         select:hover {
             background-color: #8cbb6c;
         }
-        #checkmateOverlay {
-            position: absolute;
+        #checkmatePopup {
+            position: fixed;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%); /* Center the overlay */
-            width: 500px;
-            height: 300px;
-            background-color: rgba(0, 0, 0, 0.7);
+            transform: translate(-50%, -50%); /* Center the popup on the screen */
+            width: 400px;
+            padding: 20px;
+            background-color: #444;
+            border: 2px solid #FFD700;
+            border-radius: 8px;
             display: none;
-            justify-content: center;
-            align-items: center;
             flex-direction: column;
-            z-index: 10;
+            align-items: center;
+            z-index: 20; /* High z-index to appear above the board */
             text-align: center;
         }
-        #checkmateOverlay p {
-            font-size: 60px;
+        #checkmatePopup p {
+            font-size: 48px;
             font-weight: bold;
-            color: #FFD700; /* Gold color for CHECKMATE! text */
+            color: #FFD700; /* Gold color for WINNER! text */
             margin: 0;
         }
-        #checkmateOverlay span {
+        #checkmatePopup span {
             font-size: 24px;
             color: white;
             margin-top: 20px;
         }
-        #stalemateOverlay {
-            position: absolute;
+        #checkmatePopup button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #769656;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #checkmatePopup button:hover {
+            background-color: #8cbb6c;
+        }
+        #drawPopup {
+            position: fixed;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%); /* Center the overlay */
-            width: 800px;
-            height: 800px;
-            background-color: rgba(0, 0, 0, 0.7);
+            transform: translate(-50%, -50%); /* Center the popup on the screen */
+            width: 400px;
+            padding: 20px;
+            background-color: #444;
+            border: 2px solid #FFD700;
+            border-radius: 8px;
             display: none;
-            justify-content: center;
-            align-items: center;
             flex-direction: column;
-            z-index: 10;
+            align-items: center;
+            z-index: 20; /* Same z-index as checkmate popup */
             text-align: center;
         }
-        #stalemateOverlay p {
-            font-size: 60px;
+        #drawPopup p {
+            font-size: 48px;
             font-weight: bold;
             color: #FFD700; /* Gold color for STALEMATE! text */
             margin: 0;
         }
-        #stalemateOverlay span {
+        #drawPopup span {
             font-size: 24px;
             color: white;
             margin-top: 20px;
+        }
+        #drawPopup button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #769656;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #drawPopup button:hover {
+            background-color: #8cbb6c;
         }
     </style>
 </head>
 <body>
     <div id="gameStatus">Load a setup and click "Start AI Game"</div>
     <canvas id="chessCanvas" width="800" height="800"></canvas>
-    <div id="checkmateOverlay">
-        <p>CHECKMATE!</p>
+    <div id="checkmatePopup">
+        <p>WINNER!</p>
         <span id="checkmateText"></span>
+        <button onclick="closeCheckmatePopup()">Close</button>
     </div>
-    <div id="stalemateOverlay">
+    <div id="drawPopup">
         <p>STALEMATE!</p>
-        <span id="stalemateText">Game ended in a draw.</span>
+        <span>Everyone gets a sticker!</span>
+        <button onclick="closeDrawPopup()">Close</button>
     </div>
     <div id="controls">
         <button onclick="startGame()">Start AI Game</button>
@@ -285,6 +315,15 @@
             console.log(`Speed set to ${speedMultiplier}x`);
         }
 
+        // --- Popup Control ---
+        function closeCheckmatePopup() {
+            document.getElementById('checkmatePopup').style.display = 'none';
+        }
+
+        function closeDrawPopup() {
+            document.getElementById('drawPopup').style.display = 'none';
+        }
+
         // --- Setup Functions ---
         function initStandardBoard() {
             board = [
@@ -306,8 +345,8 @@
             lastMove = null;
             pendingMove = null;
             drawBoard();
-            document.getElementById('checkmateOverlay').style.display = 'none';
-            document.getElementById('stalemateOverlay').style.display = 'none';
+            document.getElementById('checkmatePopup').style.display = 'none';
+            document.getElementById('drawPopup').style.display = 'none';
             statusDiv.textContent = `Game Ready. White to Move.`;
         }
 
@@ -379,8 +418,8 @@
             lastMove = null;
             pendingMove = null;
             drawBoard();
-            document.getElementById('checkmateOverlay').style.display = 'none';
-            document.getElementById('stalemateOverlay').style.display = 'none';
+            document.getElementById('checkmatePopup').style.display = 'none';
+            document.getElementById('drawPopup').style.display = 'none';
             statusDiv.textContent = `Custom Setup Loaded. White to Move.`;
         }
 
@@ -784,18 +823,17 @@
                 const winner = player === 'w' ? 'Black' : 'White';
                 if (isCheckmate(player)) {
                     statusDiv.textContent = `🚨 Game Over: Checkmate! ${winner} Wins.`;
-                    // Show checkmate overlay
-                    const overlay = document.getElementById('checkmateOverlay');
+                    // Show checkmate popup
+                    const popup = document.getElementById('checkmatePopup');
                     const checkmateText = document.getElementById('checkmateText');
                     checkmateText.textContent = `${winner} WINS`;
-                    overlay.style.display = 'flex';
-                    document.getElementById('stalemateOverlay').style.display = 'none';
+                    popup.style.display = 'flex';
+                    document.getElementById('drawPopup').style.display = 'none';
                 } else {
                     statusDiv.textContent = `🤝 Game Over: Stalemate (Draw).`;
-                    // Show stalemate overlay
-                    const stalemateOverlay = document.getElementById('stalemateOverlay');
-                    stalemateOverlay.style.display = 'flex';
-                    document.getElementById('checkmateOverlay').style.display = 'none';
+                    // Show draw popup
+                    document.getElementById('drawPopup').style.display = 'flex';
+                    document.getElementById('checkmatePopup').style.display = 'none';
                 }
                 return;
             }
@@ -851,8 +889,9 @@
                     if (positionHistory.get(newBoardHash) >= 3) {
                         gameActive = false;
                         statusDiv.textContent = `🤝 Game Over: Draw by threefold repetition!`;
-                        document.getElementById('checkmateOverlay').style.display = 'none';
-                        document.getElementById('stalemateOverlay').style.display = 'none';
+                        // Show draw popup
+                        document.getElementById('drawPopup').style.display = 'flex';
+                        document.getElementById('checkmatePopup').style.display = 'none';
                         return;
                     }
 
@@ -871,12 +910,12 @@
                         gameActive = false;
                         const winner = player === 'w' ? 'White' : 'Black';
                         statusDiv.textContent = `🚨 Game Over: Checkmate! ${winner} Wins.`;
-                        // Show checkmate overlay
-                        const overlay = document.getElementById('checkmateOverlay');
+                        // Show checkmate popup
+                        const popup = document.getElementById('checkmatePopup');
                         const checkmateText = document.getElementById('checkmateText');
                         checkmateText.textContent = `${winner} WINS`;
-                        overlay.style.display = 'flex';
-                        document.getElementById('stalemateOverlay').style.display = 'none';
+                        popup.style.display = 'flex';
+                        document.getElementById('drawPopup').style.display = 'none';
                     }
                 }, 1000 / speedMultiplier);
             }
@@ -914,8 +953,8 @@
                     console.error("Error in AI move:", error);
                     gameActive = false;
                     statusDiv.textContent = "Game stopped due to an error. Check console for details.";
-                    document.getElementById('checkmateOverlay').style.display = 'none';
-                    document.getElementById('stalemateOverlay').style.display = 'none';
+                    document.getElementById('checkmatePopup').style.display = 'none';
+                    document.getElementById('drawPopup').style.display = 'none';
                 }
             }
             setTimeout(playMove, 10);
@@ -925,8 +964,8 @@
             gameActive = false;
             pendingMove = null;
             drawBoard();
-            document.getElementById('checkmateOverlay').style.display = 'none';
-            document.getElementById('stalemateOverlay').style.display = 'none';
+            document.getElementById('checkmatePopup').style.display = 'none';
+            document.getElementById('drawPopup').style.display = 'none';
             statusDiv.textContent = "Game Stopped by User.";
             console.log("Game stopped by user.");
         }
